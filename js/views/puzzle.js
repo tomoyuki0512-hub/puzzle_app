@@ -1,5 +1,5 @@
 import { puzzles } from '../data/puzzles.js';
-import { difficultyById } from '../config/difficulties.js';
+import { difficultyById, difficulties } from '../config/difficulties.js';
 import { celebrate } from '../ui/celebrate.js';
 
 // タイル(1ピース)の背景スタイルを計算する。
@@ -25,6 +25,11 @@ export function renderPuzzle(app, navigate, { puzzleId, difficultyId }) {
   const diff = difficultyById(difficultyId);
   const { cols, rows } = diff;
   const total = cols * rows;
+  // なんいどが複数あるときだけ「選び直し」ができる
+  const canChooseLevel = difficulties.length > 1;
+  // 戻る先: 選択画面がある構成なら選択画面、単一ならホーム
+  const goBack = () =>
+    canChooseLevel ? navigate('difficulty', { puzzleId: puzzle.id }) : navigate('home');
 
   app.innerHTML = '';
 
@@ -36,9 +41,7 @@ export function renderPuzzle(app, navigate, { puzzleId, difficultyId }) {
     <span class="puzzle-progress" aria-live="polite">0 / ${total}</span>
     <button class="btn-peek" type="button" aria-label="みほんをみる">みほん</button>
   `;
-  header.querySelector('.btn-back').addEventListener('click', () =>
-    navigate('difficulty', { puzzleId: puzzle.id })
-  );
+  header.querySelector('.btn-back').addEventListener('click', goBack);
 
   // ---- 盤面(スロット) ----
   const boardWrap = document.createElement('div');
@@ -238,16 +241,18 @@ export function renderPuzzle(app, navigate, { puzzleId, difficultyId }) {
       <p class="done-title">やったね！ かんせい！</p>
       <div class="done-actions">
         <button class="done-btn" data-act="again" type="button">もういっかい</button>
-        <button class="done-btn" data-act="level" type="button">ピースをかえる</button>
+        ${canChooseLevel ? '<button class="done-btn" data-act="level" type="button">ピースをかえる</button>' : ''}
         <button class="done-btn primary" data-act="home" type="button">ほかのえ</button>
       </div>
     `;
     done.querySelector('[data-act="again"]').addEventListener('click', () =>
       navigate('puzzle', { puzzleId: puzzle.id, difficultyId: diff.id })
     );
-    done.querySelector('[data-act="level"]').addEventListener('click', () =>
-      navigate('difficulty', { puzzleId: puzzle.id })
-    );
+    if (canChooseLevel) {
+      done.querySelector('[data-act="level"]').addEventListener('click', () =>
+        navigate('difficulty', { puzzleId: puzzle.id })
+      );
+    }
     done.querySelector('[data-act="home"]').addEventListener('click', () =>
       navigate('home')
     );

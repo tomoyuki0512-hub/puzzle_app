@@ -1,4 +1,15 @@
 import { puzzles } from '../data/puzzles.js';
+import { difficulties } from '../config/difficulties.js';
+
+// カードを押したときの遷移。なんいどが1つだけなら選択画面を飛ばして
+// そのままパズルへ。2つ以上あるときは選択画面を表示する。
+function openPuzzle(navigate, puzzleId) {
+  if (difficulties.length <= 1) {
+    navigate('puzzle', { puzzleId, difficultyId: difficulties[0].id });
+  } else {
+    navigate('difficulty', { puzzleId });
+  }
+}
 
 // ホーム画面: puzzles.js の内容からカードを自動生成
 export function renderHome(app, navigate) {
@@ -26,7 +37,7 @@ export function renderHome(app, navigate) {
         ${p.credit ? `<span class="card-credit">${p.credit}</span>` : ''}
       </div>
     `;
-    card.addEventListener('click', () => navigate('difficulty', { puzzleId: p.id }));
+    card.addEventListener('click', () => openPuzzle(navigate, p.id));
     grid.appendChild(card);
   });
 

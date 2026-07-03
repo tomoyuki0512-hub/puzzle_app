@@ -2,7 +2,7 @@
 //  Service Worker — オフライン再生用のキャッシュ
 //  アセットを更新したら CACHE_VERSION を上げてください。
 // ============================================================
-const CACHE_VERSION = 'puzzle-v1';
+const CACHE_VERSION = 'puzzle-v2';
 
 const APP_SHELL = [
   './',
