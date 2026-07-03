@@ -1,8 +1,13 @@
 // ============================================================
-//  Service Worker — オフライン再生用のキャッシュ
+//  Service Worker — オフライン対応 + 更新の反映
+//  方針:
+//   - アプリのコード(HTML/JS/CSS/manifest)は「network-first」。
+//     オンラインなら常に最新を取得し、更新がすぐ反映される。
+//     オフライン時のみキャッシュにフォールバック。
+//   - 画像・アイコンは「cache-first」（容量が大きく変化が少ない）。
 //  アセットを更新したら CACHE_VERSION を上げてください。
 // ============================================================
-const CACHE_VERSION = 'puzzle-v2';
+const CACHE_VERSION = 'puzzle-v3';
 
 const APP_SHELL = [
   './',
@@ -41,22 +46,47 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// キャッシュ優先 + ネットワークフォールバック（GET のみ）
+function cacheable(res) {
+  return res && res.status === 200 && res.type === 'basic';
+}
+
+// 画像・アイコン向け: キャッシュ優先（無ければ取得してキャッシュ）
+function cacheFirst(req) {
+  return caches.match(req).then((cached) => {
+    if (cached) return cached;
+    return fetch(req).then((res) => {
+      if (cacheable(res)) {
+        const clone = res.clone();
+        caches.open(CACHE_VERSION).then((cache) => cache.put(req, clone));
+      }
+      return res;
+    });
+  });
+}
+
+// アプリのコード向け: ネットワーク優先（取得できたら最新をキャッシュ更新、
+// オフライン時のみキャッシュへフォールバック）
+function networkFirst(req) {
+  return fetch(req)
+    .then((res) => {
+      if (cacheable(res)) {
+        const clone = res.clone();
+        caches.open(CACHE_VERSION).then((cache) => cache.put(req, clone));
+      }
+      return res;
+    })
+    .catch(() =>
+      caches.match(req).then((cached) => cached || caches.match('./index.html'))
+    );
+}
+
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
-  event.respondWith(
-    caches.match(req).then((cached) => {
-      if (cached) return cached;
-      return fetch(req)
-        .then((res) => {
-          if (res && res.status === 200 && res.type === 'basic') {
-            const clone = res.clone();
-            caches.open(CACHE_VERSION).then((cache) => cache.put(req, clone));
-          }
-          return res;
-        })
-        .catch(() => cached);
-    })
-  );
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return; // 別オリジンは素通し
+
+  // 画像は cache-first、それ以外(ページ/JS/CSS/manifest)は network-first
+  const isImage = req.destination === 'image' || /\.(png|jpe?g|gif|webp|svg)$/i.test(url.pathname);
+  event.respondWith(isImage ? cacheFirst(req) : networkFirst(req));
 });
