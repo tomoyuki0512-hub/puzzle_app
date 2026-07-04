@@ -61,4 +61,28 @@ export const puzzles = [
     src: 'images/hello-mickey.jpg',
     credit: '©Disney',
   },
+  {
+    id: 'frozen-the-best',
+    title: 'アナとゆきのじょおう',
+    src: 'images/frozen-the-best.webp',
+    credit: '©Disney',
+  },
+  {
+    id: 'rapunzel-dance',
+    title: 'ラプンツェルのダンス',
+    src: 'images/rapunzel-dance.png',
+    credit: '©Disney',
+  },
+  {
+    id: 'rapunzel-lantern',
+    title: 'ラプンツェルのランタン',
+    src: 'images/rapunzel-lantern.jpg',
+    credit: '©Disney',
+  },
+  {
+    id: 'rapunzel-poster',
+    title: 'とうのうえのラプンツェル',
+    src: 'images/rapunzel-poster.jpg',
+    credit: '©Disney',
+  },
 ];
