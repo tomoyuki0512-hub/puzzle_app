@@ -13,6 +13,7 @@ function openPuzzle(navigate, puzzleId) {
 
 // ホーム画面: puzzles.js の内容からカードを自動生成
 export function renderHome(app, navigate) {
+  app.className = 'app';
   app.innerHTML = '';
 
   const header = document.createElement('header');

@@ -212,45 +212,56 @@ button {
 }
 .btn-peek:active { transform: scale(0.95); }
 
-/* あそび場。完成図(かんせいず)はつねに表示。
-   既定(横向き・正方形): 上に完成図・下にパズル。 */
-.play-area {
-  width: 100%;
+/* ===== パズル画面: スクロールなしの固定レイアウト(iPad横向き最適) =====
+   1段目: 左=完成図(かんせいず) / 右=パズル
+   2段目: ピース置き場
+   盤面・完成図・ピースの寸法は JS(relayout) が画面に収まるよう px 指定する。 */
+.app-puzzle {
+  max-width: 1200px;
+  height: 100dvh;
+  min-height: 0;
+  padding: 6px 14px calc(6px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: hidden;           /* スクロールさせない */
+}
+.app-puzzle .puzzle-header { padding: 2px 0; }
+
+.play-area { width: 100%; }
+.app-puzzle .play-area {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.app-puzzle .reference {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
 }
+.app-puzzle .board-wrap { margin: 0; }
+.app-puzzle .tray {
+  flex: 0 0 32dvh;
+  min-height: 0;
+  align-items: center;
+  align-content: center;
+  overflow: hidden;
+  padding: 12px;
+}
+
 .reference {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  width: 100%;
-  max-width: 58%;      /* 横向き・正方形: 上に控えめに */
-  margin: 0 0 14px;
-}
-
-/* 縦長画像: 左=完成図 / 右=パズル の2カラム */
-.play-area.portrait {
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 12px;
-}
-.play-area.portrait .reference {
-  flex: 1 1 0;
-  min-width: 0;
-  max-width: 50%;
-  margin: 4px 0 20px;
-}
-.play-area.portrait .board-wrap {
-  flex: 1 1 0;
-  min-width: 0;
-  max-width: 50%;
-  margin: 4px 0 20px;
 }
 .reference-img {
-  width: 100%;
   border-radius: var(--radius-sm);
   background-size: cover;
   background-position: center;

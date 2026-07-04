@@ -31,6 +31,7 @@ export function renderPuzzle(app, navigate, { puzzleId, difficultyId }) {
   const goBack = () =>
     canChooseLevel ? navigate('difficulty', { puzzleId: puzzle.id }) : navigate('home');
 
+  app.className = 'app app-puzzle'; // スクロールなしの固定レイアウト
   app.innerHTML = '';
 
   // ---- ヘッダー ----
@@ -50,11 +51,11 @@ export function renderPuzzle(app, navigate, { puzzleId, difficultyId }) {
     return (w * rows) / (h * cols);
   };
 
-  // ---- あそび場: 縦長画像のときは「左に完成図・右にパズル」の2カラム ----
+  // ---- あそび場(1段目): 左=完成図(かんせいず) / 右=パズル ----
+  // 画像の向きに関わらず常にこの2カラム。サイズはJSで画面に収まるよう調整。
   const playArea = document.createElement('div');
   playArea.className = 'play-area';
 
-  // 完成図(かんせいず)。縦長のときだけ左側に常時表示する。
   const reference = document.createElement('div');
   reference.className = 'reference';
   reference.innerHTML = `
@@ -70,8 +71,6 @@ export function renderPuzzle(app, navigate, { puzzleId, difficultyId }) {
   board.className = 'board';
   board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
   board.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-  // 画像の比率で盤面のかたちを決める（初期値16:9、読み込み後に補正）
-  board.style.aspectRatio = '16 / 9';
 
   // うっすら見本（ゴースト）
   const ghost = document.createElement('div');
@@ -93,22 +92,7 @@ export function renderPuzzle(app, navigate, { puzzleId, difficultyId }) {
   const tray = document.createElement('div');
   tray.className = 'tray';
 
-  // 画像の実寸から盤面・完成図・ピースの比率を補正し、
-  // 縦長なら2カラム構成に切り替える。
-  const probe = new Image();
-  probe.onload = () => {
-    const w = probe.naturalWidth, h = probe.naturalHeight;
-    if (!w || !h) return;
-    board.style.aspectRatio = `${w} / ${h}`;
-    reference.querySelector('.reference-img').style.aspectRatio = `${w} / ${h}`;
-    // ピースのセル比率を実寸で補正
-    const ar = String(cellAspect());
-    tray.querySelectorAll('.piece').forEach((p) => { p.style.aspectRatio = ar; });
-    // 縦長のとき: 左=完成図 / 右=パズル の2カラム。
-    // 横向き・正方形のとき: 上に完成図・下にパズル（既定レイアウト）。
-    if (h > w * 1.05) playArea.classList.add('portrait');
-  };
-  probe.src = puzzle.src;
+  const refImg = reference.querySelector('.reference-img');
 
   playArea.appendChild(reference);
   playArea.appendChild(boardWrap);
@@ -116,6 +100,75 @@ export function renderPuzzle(app, navigate, { puzzleId, difficultyId }) {
   app.appendChild(header);
   app.appendChild(playArea);
   app.appendChild(tray);
+
+  // アスペクト比を保ったまま (maxW, maxH) に収まる寸法を返す
+  function fit(aspect, maxW, maxH) {
+    let w = maxW, h = w / aspect;
+    if (h > maxH) { h = maxH; w = h * aspect; }
+    return { w: Math.floor(w), h: Math.floor(h) };
+  }
+
+  // 画面に収まるよう、盤面・完成図・ピースの実寸(px)を計算して割り当てる。
+  // スクロールが出ないよう、常に利用可能な領域内に収める。
+  function relayout() {
+    if (!playArea.isConnected) {
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
+      window.visualViewport && window.visualViewport.removeEventListener('resize', onResize);
+      return;
+    }
+    const imgAspect = (probe.naturalWidth || 16) / (probe.naturalHeight || 9);
+
+    // --- 1段目: 左=完成図 / 右=盤面 ---
+    const pa = playArea.getBoundingClientRect();
+    const colGap = 16, labelH = 20;
+    const halfW = Math.max(0, (pa.width - colGap) / 2);
+    const halfH = Math.max(0, pa.height);
+    const b = fit(imgAspect, halfW, halfH);
+    boardWrap.style.width = b.w + 'px';
+    boardWrap.style.height = b.h + 'px';
+    board.style.width = b.w + 'px';
+    board.style.height = b.h + 'px';
+    const r = fit(imgAspect, halfW, Math.max(0, halfH - labelH));
+    refImg.style.width = r.w + 'px';
+    refImg.style.height = r.h + 'px';
+
+    // --- 2段目: ピース。全ピースが領域に収まる最大サイズを探す ---
+    const tr = tray.getBoundingClientRect();
+    const a = cellAspect();               // ピースのよこ/たて比
+    const pad = 12, pgap = 8;
+    const availW = Math.max(0, tr.width - pad * 2);
+    const availH = Math.max(0, tr.height - pad * 2);
+    let bestW = 0;
+    for (let c = 1; c <= total; c++) {
+      const rowsN = Math.ceil(total / c);
+      const pw = (availW - pgap * (c - 1)) / c;
+      const ph = pw / a;
+      if (pw > 0 && ph * rowsN + pgap * (rowsN - 1) <= availH) {
+        if (pw > bestW) bestW = pw;
+      }
+    }
+    if (bestW === 0) {                    // 念のためのフォールバック(高さ基準)
+      const ph = (availH - pgap) / 2;
+      bestW = Math.max(24, ph * a);
+    }
+    const pieceW = Math.max(24, Math.floor(bestW) - 1);
+    tray.querySelectorAll('.piece').forEach((p) => {
+      p.style.aspectRatio = String(a);
+      p.style.width = pieceW + 'px';
+    });
+  }
+  const onResize = () => requestAnimationFrame(relayout);
+
+  // 画像読み込み後に正しい比率で再計算
+  const probe = new Image();
+  probe.onload = () => onResize();
+  probe.src = puzzle.src;
+
+  window.addEventListener('resize', onResize);
+  window.addEventListener('orientationchange', onResize);
+  window.visualViewport && window.visualViewport.addEventListener('resize', onResize);
+  requestAnimationFrame(relayout);
 
   // ============ ゲームロジック ============
   const placed = new Set();

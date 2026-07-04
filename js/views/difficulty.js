@@ -4,6 +4,7 @@ import { difficulties } from '../config/difficulties.js';
 // なんいど（ピース数）えらび画面
 export function renderDifficulty(app, navigate, { puzzleId }) {
   const puzzle = puzzles.find((p) => p.id === puzzleId) || puzzles[0];
+  app.className = 'app';
   app.innerHTML = '';
 
   const header = document.createElement('header');

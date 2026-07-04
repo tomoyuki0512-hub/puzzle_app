@@ -7,7 +7,7 @@
 //   - 画像・アイコンは「cache-first」（容量が大きく変化が少ない）。
 //  アセットを更新したら CACHE_VERSION を上げてください。
 // ============================================================
-const CACHE_VERSION = 'puzzle-v9';
+const CACHE_VERSION = 'puzzle-v10';
 
 const APP_SHELL = [
   './',
