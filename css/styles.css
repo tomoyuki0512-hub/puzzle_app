@@ -212,26 +212,35 @@ button {
 }
 .btn-peek:active { transform: scale(0.95); }
 
-/* あそび場。既定は盤面が上・トレイが下（縦積み）。 */
-.play-area { width: 100%; }
-.reference { display: none; } /* 縦長のときだけ表示 */
-
-/* 縦長画像: 左=完成図(かんせいず) / 右=パズル の2カラム */
-.play-area.portrait {
+/* あそび場。完成図(かんせいず)はつねに表示。
+   既定(横向き・正方形): 上に完成図・下にパズル。 */
+.play-area {
+  width: 100%;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.reference {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  max-width: 58%;      /* 横向き・正方形: 上に控えめに */
+  margin: 0 0 14px;
+}
+
+/* 縦長画像: 左=完成図 / 右=パズル の2カラム */
+.play-area.portrait {
   flex-direction: row;
   align-items: flex-start;
   justify-content: center;
   gap: 12px;
 }
 .play-area.portrait .reference {
-  display: flex;
   flex: 1 1 0;
   min-width: 0;
   max-width: 50%;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
   margin: 4px 0 20px;
 }
 .play-area.portrait .board-wrap {
@@ -252,6 +261,8 @@ button {
   font-weight: 700;
   color: var(--ink-soft);
 }
+
+.header-spacer { flex: 0 0 auto; width: 48px; }
 
 .board-wrap {
   position: relative;

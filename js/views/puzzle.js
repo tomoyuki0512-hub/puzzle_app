@@ -39,7 +39,7 @@ export function renderPuzzle(app, navigate, { puzzleId, difficultyId }) {
   header.innerHTML = `
     <button class="btn-back" type="button" aria-label="もどる">‹</button>
     <span class="puzzle-progress" aria-live="polite">0 / ${total}</span>
-    <button class="btn-peek" type="button" aria-label="みほんをみる">みほん</button>
+    <span class="header-spacer" aria-hidden="true"></span>
   `;
   header.querySelector('.btn-back').addEventListener('click', goBack);
 
@@ -104,12 +104,9 @@ export function renderPuzzle(app, navigate, { puzzleId, difficultyId }) {
     // ピースのセル比率を実寸で補正
     const ar = String(cellAspect());
     tray.querySelectorAll('.piece').forEach((p) => { p.style.aspectRatio = ar; });
-    // 明確に縦長のとき: 左=完成図 / 右=パズル の2カラム
-    if (h > w * 1.05) {
-      playArea.classList.add('portrait');
-      const peek = header.querySelector('.btn-peek');
-      if (peek) peek.style.display = 'none'; // 完成図を常時表示するので不要
-    }
+    // 縦長のとき: 左=完成図 / 右=パズル の2カラム。
+    // 横向き・正方形のとき: 上に完成図・下にパズル（既定レイアウト）。
+    if (h > w * 1.05) playArea.classList.add('portrait');
   };
   probe.src = puzzle.src;
 
@@ -250,16 +247,6 @@ export function renderPuzzle(app, navigate, { puzzleId, difficultyId }) {
       piece.addEventListener('pointercancel', onUp);
     });
   }
-
-  // ---- みほん(全体像)をチラ見せ ----
-  header.querySelector('.btn-peek').addEventListener('click', () => {
-    const overlay = document.createElement('div');
-    overlay.className = 'peek-overlay';
-    overlay.innerHTML = `<img src="${puzzle.src}" alt="みほん" />`;
-    overlay.addEventListener('click', () => overlay.remove());
-    app.appendChild(overlay);
-    setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 2000);
-  });
 
   // ---- クリア時 ----
   function onComplete() {
