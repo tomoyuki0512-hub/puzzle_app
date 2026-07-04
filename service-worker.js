@@ -7,7 +7,7 @@
 //   - 画像・アイコンは「cache-first」（容量が大きく変化が少ない）。
 //  アセットを更新したら CACHE_VERSION を上げてください。
 // ============================================================
-const CACHE_VERSION = 'puzzle-v3';
+const CACHE_VERSION = 'puzzle-v4';
 
 const APP_SHELL = [
   './',
@@ -27,6 +27,11 @@ const APP_SHELL = [
   './images/disneysea-night-mickey.jpg',
   './images/disneysea-25th-castle.jpg',
   './images/disneysea-mermaid-lagoon.jpg',
+  './images/duffy-linabell.jpg',
+  './images/40th-dream-go-round.webp',
+  './images/40th-mickey-minnie.jpg',
+  './images/characters-castle.jpg',
+  './images/hello-mickey.jpg',
 ];
 
 self.addEventListener('install', (event) => {

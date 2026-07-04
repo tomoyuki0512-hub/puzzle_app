@@ -13,7 +13,7 @@
 // ============================================================
 
 export const difficulties = [
-  { id: 'd16', label: '16ピース', short: '16', cols: 4, rows: 4 }, // 16 (4x4)
+  { id: 'd15', label: '15ピース', short: '15', cols: 5, rows: 3 }, // 15 (5x3)
 ];
 
 export function difficultyById(id) {

@@ -31,4 +31,34 @@ export const puzzles = [
     src: 'images/disneysea-mermaid-lagoon.jpg',
     credit: '©Disney',
   },
+  {
+    id: 'duffy-linabell',
+    title: 'ダッフィーとリーナベル',
+    src: 'images/duffy-linabell.jpg',
+    credit: '©Disney',
+  },
+  {
+    id: '40th-dream-go-round',
+    title: 'ドリームゴーラウンド',
+    src: 'images/40th-dream-go-round.webp',
+    credit: '©Disney',
+  },
+  {
+    id: '40th-mickey-minnie',
+    title: '40しゅうねんミッキー',
+    src: 'images/40th-mickey-minnie.jpg',
+    credit: '©Disney',
+  },
+  {
+    id: 'characters-castle',
+    title: 'みんなでおいわい',
+    src: 'images/characters-castle.jpg',
+    credit: '©Disney',
+  },
+  {
+    id: 'hello-mickey',
+    title: 'こんにちはミッキー',
+    src: 'images/hello-mickey.jpg',
+    credit: '©Disney',
+  },
 ];
