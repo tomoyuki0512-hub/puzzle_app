@@ -48,11 +48,19 @@ if ('serviceWorker' in navigator) {
 
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('./service-worker.js')
+      // updateViaCache:'none' … SWスクリプト自体はHTTPキャッシュを使わず
+      // 毎回ネットワークから確認するので、更新を取りこぼさない
+      .register('./service-worker.js', { updateViaCache: 'none' })
       .then((reg) => {
-        // 定期的に更新チェック（起動時 + 1時間ごと）
-        reg.update();
-        setInterval(() => reg.update(), 60 * 60 * 1000);
+        const check = () => reg.update().catch(() => {});
+        check();                             // 起動時
+        setInterval(check, 30 * 60 * 1000);  // 30分ごと
+        // アプリに戻ってきた/画面が再表示されるたびに更新確認。
+        // 新版が見つかれば有効化→controllerchangeで自動リロード。
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') check();
+        });
+        window.addEventListener('online', check);
       })
       .catch((err) => {
         console.warn('SW registration failed:', err);
