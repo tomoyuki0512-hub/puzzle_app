@@ -212,6 +212,47 @@ button {
 }
 .btn-peek:active { transform: scale(0.95); }
 
+/* あそび場。既定は盤面が上・トレイが下（縦積み）。 */
+.play-area { width: 100%; }
+.reference { display: none; } /* 縦長のときだけ表示 */
+
+/* 縦長画像: 左=完成図(かんせいず) / 右=パズル の2カラム */
+.play-area.portrait {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 12px;
+}
+.play-area.portrait .reference {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 50%;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 20px;
+}
+.play-area.portrait .board-wrap {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 50%;
+  margin: 4px 0 20px;
+}
+.reference-img {
+  width: 100%;
+  border-radius: var(--radius-sm);
+  background-size: cover;
+  background-position: center;
+  box-shadow: var(--shadow-soft);
+}
+.reference-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
 .board-wrap {
   position: relative;
   width: 100%;

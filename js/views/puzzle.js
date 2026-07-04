@@ -43,6 +43,25 @@ export function renderPuzzle(app, navigate, { puzzleId, difficultyId }) {
   `;
   header.querySelector('.btn-back').addEventListener('click', goBack);
 
+  // 1マス(ピース)のたて×よこ比率を画像の実寸から計算
+  const cellAspect = () => {
+    const w = probe.naturalWidth || 16;
+    const h = probe.naturalHeight || 9;
+    return (w * rows) / (h * cols);
+  };
+
+  // ---- あそび場: 縦長画像のときは「左に完成図・右にパズル」の2カラム ----
+  const playArea = document.createElement('div');
+  playArea.className = 'play-area';
+
+  // 完成図(かんせいず)。縦長のときだけ左側に常時表示する。
+  const reference = document.createElement('div');
+  reference.className = 'reference';
+  reference.innerHTML = `
+    <div class="reference-img" style="background-image:url('${puzzle.src}')"></div>
+    <span class="reference-label">かんせいず</span>
+  `;
+
   // ---- 盤面(スロット) ----
   const boardWrap = document.createElement('div');
   boardWrap.className = 'board-wrap';
@@ -74,17 +93,31 @@ export function renderPuzzle(app, navigate, { puzzleId, difficultyId }) {
   const tray = document.createElement('div');
   tray.className = 'tray';
 
-  // 画像の実寸から盤面の比率を補正
+  // 画像の実寸から盤面・完成図・ピースの比率を補正し、
+  // 縦長なら2カラム構成に切り替える。
   const probe = new Image();
   probe.onload = () => {
-    if (probe.naturalWidth && probe.naturalHeight) {
-      board.style.aspectRatio = `${probe.naturalWidth} / ${probe.naturalHeight}`;
+    const w = probe.naturalWidth, h = probe.naturalHeight;
+    if (!w || !h) return;
+    board.style.aspectRatio = `${w} / ${h}`;
+    reference.querySelector('.reference-img').style.aspectRatio = `${w} / ${h}`;
+    // ピースのセル比率を実寸で補正
+    const ar = String(cellAspect());
+    tray.querySelectorAll('.piece').forEach((p) => { p.style.aspectRatio = ar; });
+    // 明確に縦長のとき: 左=完成図 / 右=パズル の2カラム
+    if (h > w * 1.05) {
+      playArea.classList.add('portrait');
+      const peek = header.querySelector('.btn-peek');
+      if (peek) peek.style.display = 'none'; // 完成図を常時表示するので不要
     }
   };
   probe.src = puzzle.src;
 
+  playArea.appendChild(reference);
+  playArea.appendChild(boardWrap);
+
   app.appendChild(header);
-  app.appendChild(boardWrap);
+  app.appendChild(playArea);
   app.appendChild(tray);
 
   // ============ ゲームロジック ============
@@ -102,8 +135,7 @@ export function renderPuzzle(app, navigate, { puzzleId, difficultyId }) {
     piece.type = 'button';
     piece.className = 'piece';
     piece.dataset.index = String(index);
-    piece.style.aspectRatio = `${probe.naturalWidth || 16} / ${(probe.naturalHeight || 9) * (cols / rows)}`;
-    // ↑ ピースは1マス分の比率。col/row で正規化。
+    piece.style.aspectRatio = String(cellAspect()); // 1マス分の比率（読み込み後に補正）
     tileStyle(piece, puzzle.src, c, r, cols, rows);
     attachPointer(piece, index);
     return piece;
